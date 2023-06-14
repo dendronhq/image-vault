@@ -54,6 +54,7 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 class Paster {
+
 	public static async paste() {
 		// get current edit file path
 		const editor = vscode.window.activeTextEditor;
@@ -101,7 +102,8 @@ class Paster {
 				const resp = await AWSUtils.putObject({client, bucketName, data, mime: mimeType, key: key});
 				Logger.log(`uploaded to s3 status: ${resp.$metadata.httpStatusCode}`);
 
-				// imagePath = this.renderFilePath(editor.document.languageId, this.basePathConfig, imagePath, this.forceUnixStyleSeparatorConfig, this.prefixConfig, this.suffixConfig);
+
+				imagePath = this.renderFilePath(imagePath);
 				editor.edit(edit => {
 					const current = editor.selection;
 					if (current.isEmpty) {
@@ -115,6 +117,16 @@ class Paster {
 
 		});
 	}
+
+	public static renderFilePath(imageFilePath: string): string {
+
+		imageFilePath = path.normalize(imageFilePath);
+
+		const originalImagePath = imageFilePath;
+		imageFilePath = `![](${imageFilePath})`;
+		return imageFilePath;
+}
+
 
 	private static saveClipboardImageToFileAndGetPath(imagePath: string, cb: (imagePath: string, imagePathFromScript: string) => Promise<void>) {
 		if (!imagePath) return;
@@ -141,10 +153,11 @@ class Paster {
 				imagePath
 			]);
 			powershell.on('error', function (e) {
+				// @ts-ignore
 				if (e.code == "ENOENT") {
 					Logger.showErrorMessage(`The powershell command is not in you PATH environment variables. Please add it and retry.`);
 				} else {
-					Logger.showErrorMessage(e);
+					Logger.showErrorMessage(e.message);
 				}
 			});
 			powershell.on('exit', function (code, signal) {
@@ -160,10 +173,9 @@ class Paster {
 
 			const ascript = spawn('osascript', [scriptPath, imagePath]);
 			ascript.on('error', function (e) {
-				Logger.showErrorMessage(e);
+				Logger.showErrorMessage(e.message);
 			});
 			ascript.on('exit', function (code, signal) {
-					Logger.showErrorMessage(`exit: ${code}`);
 				// console.log('exit',code,signal);
 			});
 			ascript.stdout.on('data', function (data: Buffer) {
@@ -176,7 +188,7 @@ class Paster {
 
 			const ascript = spawn('sh', [scriptPath, imagePath]);
 			ascript.on('error', function (e) {
-				Logger.showErrorMessage(e);
+				Logger.showErrorMessage(e.message);
 			});
 			ascript.on('exit', function (code, signal) {
 				// console.log('exit',code,signal);
