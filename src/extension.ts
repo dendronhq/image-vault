@@ -4,6 +4,12 @@ import { spawn } from 'child_process';
 import path = require('path');
 import fs from "fs";
 import vscode from 'vscode';
+import { AWSUtils } from './utils/aws';
+import { PutObjectCommand } from '@aws-sdk/client-s3';
+import mime = require('mime');
+import { getConfig } from './utils/vscode';
+import { CONSTANTS } from './constants';
+import moment = require('moment');
 
 class Logger {
 	static channel: vscode.OutputChannel;
@@ -30,6 +36,10 @@ class Logger {
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
+	Logger.channel = vscode.window.createOutputChannel(CONSTANTS.EXTENSION_NAMESPACE);
+	// open channel on startup
+	Logger.channel.show(true);
+
 	context.subscriptions.push(vscode.commands.registerCommand('extension.pasteImage', async () => {
 		try {
 			Paster.paste();
@@ -38,6 +48,8 @@ export function activate(context: vscode.ExtensionContext) {
 			Logger.showErrorMessage(e);
 		}
 	}));
+
+	Logger.log("Extension activated");
 
 }
 
@@ -61,21 +73,37 @@ class Paster {
 
 	public static getImagePath() {
 		const HARDCODED_PATH_CHANGEME = '/tmp/imagevault';
-		return HARDCODED_PATH_CHANGEME;
+		const imageFileName = path.join(HARDCODED_PATH_CHANGEME, moment().format("Y-MM-DD-HH-mm-ss") + ".png");
+		return imageFileName;
 	}
 
 	public static saveAndPaste(editor: vscode.TextEditor, imagePath: string) {
+		// eslint-disable-next-line no-async-promise-executor
 		return new Promise((resolve) => {
-			this.saveClipboardImageToFileAndGetPath(imagePath, (imagePath, imagePathReturnByScript) => {
+			this.saveClipboardImageToFileAndGetPath(imagePath, async (imagePath, imagePathReturnByScript) => {
 				if (!imagePathReturnByScript) return;
 				if (imagePathReturnByScript === 'no image') {
 					Logger.showInformationMessage('There is not an image in the clipboard.');
 					return;
 				}
+
+				Logger.log("uploading image to s3...");
+				// read image and upload to s3
+				const data = fs.readFileSync(imagePath);
+				const mimeType = mime.getType(imagePath);
+				const client = AWSUtils.getS3Client();
+				const bucketName = getConfig().bucketName;
+				if (mimeType === null) {
+					Logger.showInformationMessage(`Can't paste the image, unsupported file format: ${imagePath}`);
+					return;
+				}
+				const key = path.basename(imagePath);
+				const resp = await AWSUtils.putObject({client, bucketName, data, mime: mimeType, key: key});
+				Logger.log(`uploaded to s3 status: ${resp.$metadata.httpStatusCode}`);
+
 				// imagePath = this.renderFilePath(editor.document.languageId, this.basePathConfig, imagePath, this.forceUnixStyleSeparatorConfig, this.prefixConfig, this.suffixConfig);
 				editor.edit(edit => {
 					const current = editor.selection;
-
 					if (current.isEmpty) {
 						edit.insert(current.start, imagePath);
 					} else {
@@ -88,7 +116,7 @@ class Paster {
 		});
 	}
 
-	private static saveClipboardImageToFileAndGetPath(imagePath: string, cb: (imagePath: string, imagePathFromScript: string) => void) {
+	private static saveClipboardImageToFileAndGetPath(imagePath: string, cb: (imagePath: string, imagePathFromScript: string) => Promise<void>) {
 		if (!imagePath) return;
 
 		const platform = process.platform;
@@ -135,6 +163,7 @@ class Paster {
 				Logger.showErrorMessage(e);
 			});
 			ascript.on('exit', function (code, signal) {
+					Logger.showErrorMessage(`exit: ${code}`);
 				// console.log('exit',code,signal);
 			});
 			ascript.stdout.on('data', function (data: Buffer) {

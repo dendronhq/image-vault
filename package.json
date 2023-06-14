@@ -1,5 +1,5 @@
 {
-	"name": "image-vault",
+	"name": "imagevault",
 	"displayName": "Image Vault",
 	"description": "Store and serve images without bloating your git repo",
 	"version": "0.0.1",
@@ -12,14 +12,40 @@
 		"Other"
 	],
 	"activationEvents": [],
-	"main": "./out/extension.js",
+	"main": "./out/src/extension.js",
 	"contributes": {
 		"commands": [
 			{
 				"command": "extension.pasteImage",
 				"title": "Image Vault: Paste Image"
 			}
-		]
+		],
+		"configuration": {
+			"type": "object",
+			"title": "Image Vault Configuration",
+			"properties": {
+				"imageVault.accessKeyId": {
+					"type": "string",
+					"description": "AWS Access Key ID"
+				},
+				"imageVault.secretAccessKey": {
+					"type": "string",
+					"description": "AWS Secret Access Key"
+				},
+				"imageVault.region": {
+					"type": "string",
+					"description": "AWS Region"
+				},
+				"imageVault.bucketEndpoint": {
+					"type": "string",
+					"description": "AWS Bucket Endpoint"
+				},
+				"imageVault.bucketName": {
+					"type": "string",
+					"description": "AWS Bucket Name"
+				}
+			}
+		}
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
@@ -28,11 +54,19 @@
 		"watch": "tsc -watch -p ./"
 	},
 	"devDependencies": {
+		"@types/mime": "^3.0.1",
+		"@types/mocha": "^10.0.1",
+		"@types/moment": "^2.13.0",
 		"@types/node": "^16.11.7",
 		"@types/vscode": "^1.73.0",
 		"@typescript-eslint/eslint-plugin": "^5.42.0",
 		"@typescript-eslint/parser": "^5.42.0",
 		"eslint": "^8.26.0",
 		"typescript": "^5.0.2"
+	},
+	"dependencies": {
+		"@aws-sdk/client-s3": "^3.350.0",
+		"mime": "^3.0.0",
+		"moment": "^2.29.4"
 	}
 }
