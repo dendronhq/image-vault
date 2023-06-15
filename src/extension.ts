@@ -93,17 +93,20 @@ class Paster {
 				const data = fs.readFileSync(imagePath);
 				const mimeType = mime.getType(imagePath);
 				const client = AWSUtils.getS3Client();
-				const bucketName = getConfig().bucketName;
+				const {bucketName, bucketPrefix, region} = getConfig();
 				if (mimeType === null) {
 					Logger.showInformationMessage(`Can't paste the image, unsupported file format: ${imagePath}`);
 					return;
 				}
-				const key = path.basename(imagePath);
+				
+				const key = `${bucketPrefix}/${path.basename(imagePath)}`;
 				const resp = await AWSUtils.putObject({client, bucketName, data, mime: mimeType, key: key});
 				Logger.log(`uploaded to s3 status: ${resp.$metadata.httpStatusCode}`);
 
+				const baseUrl = `https://${bucketName}.s3.${region}.amazonaws.com`;
 
-				imagePath = this.renderFilePath(imagePath);
+
+				imagePath = this.renderFilePath({imageFilePath: imagePath, basePath: bucketPrefix, baseUrl});
 				editor.edit(edit => {
 					const current = editor.selection;
 					if (current.isEmpty) {
@@ -118,11 +121,10 @@ class Paster {
 		});
 	}
 
-	public static renderFilePath(imageFilePath: string): string {
-
+	public static renderFilePath(opts: {imageFilePath: string, basePath: string, baseUrl: string}): string {
+		let {imageFilePath, basePath, baseUrl} = opts;
 		imageFilePath = path.normalize(imageFilePath);
-
-		const originalImagePath = imageFilePath;
+		imageFilePath = `${baseUrl}/${basePath}/${path.basename(imageFilePath)}`;
 		imageFilePath = `![](${imageFilePath})`;
 		return imageFilePath;
 }

@@ -9,5 +9,6 @@ export enum Config {
   "region" = "imageVault.region",
   "bucketEndpoint" = "imageVault.bucketEndpoint",
   "bucketName" = "imageVault.bucketName",
+  "bucketPrefix" = "imageVault.bucketPrefix"
 }
 

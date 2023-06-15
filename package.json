@@ -43,6 +43,10 @@
 				"imageVault.bucketName": {
 					"type": "string",
 					"description": "AWS Bucket Name"
+				},
+				"imageVault.bucketPrefix": {
+					"type": "string",
+					"description": "AWS Bucket Prefix"
 				}
 			}
 		}
