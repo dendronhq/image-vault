@@ -37,8 +37,6 @@ class Logger {
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
 	Logger.channel = vscode.window.createOutputChannel(CONSTANTS.EXTENSION_NAMESPACE);
-	// open channel on startup
-	Logger.channel.show(true);
 
 	context.subscriptions.push(vscode.commands.registerCommand('extension.pasteImage', async () => {
 		try {
@@ -122,6 +120,7 @@ class Paster {
 	}
 
 	public static renderFilePath(opts: {imageFilePath: string, basePath: string, baseUrl: string}): string {
+		// eslint-disable-next-line prefer-const
 		let {imageFilePath, basePath, baseUrl} = opts;
 		imageFilePath = path.normalize(imageFilePath);
 		imageFilePath = `${baseUrl}/${basePath}/${path.basename(imageFilePath)}`;
