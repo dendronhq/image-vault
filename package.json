@@ -11,7 +11,9 @@
 	"categories": [
 		"Other"
 	],
-	"activationEvents": [],
+	"activationEvents": [
+		"onLanguage:markdown"
+	],
 	"main": "./out/src/extension.js",
 	"contributes": {
 		"commands": [

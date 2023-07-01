@@ -1,5 +1,3 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
 import { spawn } from 'child_process';
 import path = require('path');
 import fs from "fs";
@@ -9,35 +7,22 @@ import { PutObjectCommand } from '@aws-sdk/client-s3';
 import mime = require('mime');
 import { getConfig } from './utils/vscode';
 import { CONSTANTS } from './constants';
-import moment = require('moment');
+import moment from 'moment';
 import { getTmpFolder } from './utils';
+import { createImageHoverProvider } from './providers';
+import { Logger } from './utils/logger';
 
-class Logger {
-	static channel: vscode.OutputChannel;
-
-	static log(message: any) {
-		if (this.channel) {
-			const currentTime = new Date();
-			this.channel.appendLine(`[${currentTime}] ${message}`);
-		}
-	}
-
-	static showInformationMessage(message: string, ...items: string[]): Thenable<string | undefined> {
-		this.log(message);
-		return vscode.window.showInformationMessage(message, ...items);
-	}
-
-	static showErrorMessage(message: string, ...items: string[]): Thenable<string | undefined> {
-		this.log(message);
-		return vscode.window.showErrorMessage(message, ...items);
-	}
-}
 
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
 	Logger.channel = vscode.window.createOutputChannel(CONSTANTS.EXTENSION_NAMESPACE);
+	if (process.env.NODE_ENV === 'development') {
+		Logger.channel.show(true);
+	} 
+
+	context.subscriptions.push(createImageHoverProvider);
 
 	context.subscriptions.push(vscode.commands.registerCommand('extension.pasteImage', async () => {
 		try {
