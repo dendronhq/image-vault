@@ -10,6 +10,7 @@ import mime = require('mime');
 import { getConfig } from './utils/vscode';
 import { CONSTANTS } from './constants';
 import moment = require('moment');
+import { getTmpFolder } from './utils';
 
 class Logger {
 	static channel: vscode.OutputChannel;
@@ -71,8 +72,8 @@ class Paster {
 
 
 	public static getImagePath() {
-		const HARDCODED_PATH_CHANGEME = '/tmp/imagevault';
-		const imageFileName = path.join(HARDCODED_PATH_CHANGEME, moment().format("Y-MM-DD-HH-mm-ss") + ".png");
+		const tmpPath = getTmpFolder();
+		const imageFileName = path.join(tmpPath, moment().format("Y-MM-DD-HH-mm-ss") + ".png");
 		return imageFileName;
 	}
 
