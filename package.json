@@ -66,9 +66,10 @@
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
+		"bump": "yarn version --patch",
 		"package": "vsce package",
 		"compile": "tsc -p ./",
-		"install": "code-insiders --install-extension",
+		"vscode:install": "./scripts/install.sh",
 		"lint": "eslint \"src/**/*.ts\"",
 		"watch": "tsc -watch -p ./"
 	},
