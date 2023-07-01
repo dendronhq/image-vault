@@ -55,7 +55,9 @@
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
+		"package": "vsce package",
 		"compile": "tsc -p ./",
+		"install": "code-insiders --install-extension",
 		"lint": "eslint \"src/**/*.ts\"",
 		"watch": "tsc -watch -p ./"
 	},
