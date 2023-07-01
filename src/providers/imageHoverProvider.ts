@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { Logger } from './utils/logger';
+import { Logger } from '../utils/logger';
 
 export const createImageHoverProvider = vscode.languages.registerHoverProvider(
   { scheme: 'file', language: 'markdown' },

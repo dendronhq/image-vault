@@ -20,6 +20,10 @@
 			{
 				"command": "extension.pasteImage",
 				"title": "Image Vault: Paste Image"
+			},
+			{
+				"command": "extension.storeSecret",
+				"title": "Image Vault: Store AWS Secret Key"
 			}
 		],
 		"configuration": {
@@ -29,10 +33,6 @@
 				"imageVault.accessKeyId": {
 					"type": "string",
 					"description": "AWS Access Key ID"
-				},
-				"imageVault.secretAccessKey": {
-					"type": "string",
-					"description": "AWS Secret Access Key"
 				},
 				"imageVault.region": {
 					"type": "string",
@@ -60,6 +60,7 @@
 		"watch": "tsc -watch -p ./"
 	},
 	"devDependencies": {
+		"@types/lodash": "^4.14.195",
 		"@types/mime": "^3.0.1",
 		"@types/mocha": "^10.0.1",
 		"@types/moment": "^2.13.0",
@@ -72,6 +73,7 @@
 	},
 	"dependencies": {
 		"@aws-sdk/client-s3": "^3.350.0",
+		"lodash": "^4.17.21",
 		"mime": "^3.0.0",
 		"moment": "^2.29.4"
 	}

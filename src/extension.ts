@@ -1,16 +1,17 @@
 import { spawn } from 'child_process';
-import path = require('path');
 import fs from "fs";
-import vscode from 'vscode';
-import { AWSUtils } from './utils/aws';
-import { PutObjectCommand } from '@aws-sdk/client-s3';
-import mime = require('mime');
-import { getConfig } from './utils/vscode';
-import { CONSTANTS } from './constants';
 import moment from 'moment';
-import { getTmpFolder } from './utils';
+import vscode from 'vscode';
+import { CONSTANTS } from './constants';
 import { createImageHoverProvider } from './providers';
+import { createExtensionContextProvider, getExtensionContext } from './providers/extensionContextProvider';
+import { getTmpFolder } from './utils';
+import { AWSUtils } from './utils/aws';
 import { Logger } from './utils/logger';
+import { retrieveUserSecrets, storeUserSecrets } from './utils/secrets';
+import { getConfig } from './utils/vscode';
+import path from 'path';
+import mime from 'mime';
 
 
 
@@ -20,10 +21,13 @@ export function activate(context: vscode.ExtensionContext) {
 	Logger.channel = vscode.window.createOutputChannel(CONSTANTS.EXTENSION_NAMESPACE);
 	if (process.env.NODE_ENV === 'development') {
 		Logger.channel.show(true);
-	} 
+	}
 
+	// --- initialize providers
 	context.subscriptions.push(createImageHoverProvider);
+	createExtensionContextProvider(context);
 
+	// --- initialize commands
 	context.subscriptions.push(vscode.commands.registerCommand('extension.pasteImage', async () => {
 		try {
 			Paster.paste();
@@ -32,6 +36,20 @@ export function activate(context: vscode.ExtensionContext) {
 			Logger.showErrorMessage(e);
 		}
 	}));
+
+	vscode.commands.registerCommand('extension.storeSecret', async() => {
+    const secretValue = await vscode.window.showInputBox({
+      prompt: 'Enter the AWS secret key:',
+      placeHolder: 'e.g., mySecretValue',
+      password: true
+    });
+
+    if (!secretValue) {
+      vscode.window.showErrorMessage('no value set');
+      return;
+    }
+		return storeUserSecrets(context, CONSTANTS.AWS_SECRET_KEY, secretValue);
+	});
 
 	Logger.log("Extension activated");
 
@@ -64,7 +82,7 @@ class Paster {
 
 	public static saveAndPaste(editor: vscode.TextEditor, imagePath: string) {
 		// eslint-disable-next-line no-async-promise-executor
-		return new Promise((resolve) => {
+		return new Promise((resolve, reject) => {
 			this.saveClipboardImageToFileAndGetPath(imagePath, async (imagePath, imagePathReturnByScript) => {
 				if (!imagePathReturnByScript) return;
 				if (imagePathReturnByScript === 'no image') {
@@ -76,21 +94,29 @@ class Paster {
 				// read image and upload to s3
 				const data = fs.readFileSync(imagePath);
 				const mimeType = mime.getType(imagePath);
-				const client = AWSUtils.getS3Client();
-				const {bucketName, bucketPrefix, region} = getConfig();
+
+				// get secret key
+				const context = getExtensionContext();
+				const secret = await retrieveUserSecrets(context, CONSTANTS.AWS_SECRET_KEY);
+				if (secret === undefined) {
+					Logger.showErrorMessage("secret key is not set, please set it by using command: 'Paste Image: Set AWS Secret Key'");
+					return reject(new Error("secret key is not set"));
+				}
+				const client = AWSUtils.getS3Client(secret);
+				const { bucketName, bucketPrefix, region } = getConfig();
 				if (mimeType === null) {
 					Logger.showInformationMessage(`Can't paste the image, unsupported file format: ${imagePath}`);
 					return;
 				}
-				
+
 				const key = `${bucketPrefix}/${path.basename(imagePath)}`;
-				const resp = await AWSUtils.putObject({client, bucketName, data, mime: mimeType, key: key});
+				const resp = await AWSUtils.putObject({ client, bucketName, data, mime: mimeType, key: key });
 				Logger.log(`uploaded to s3 status: ${resp.$metadata.httpStatusCode}`);
 
 				const baseUrl = `https://${bucketName}.s3.${region}.amazonaws.com`;
 
 
-				imagePath = this.renderFilePath({imageFilePath: imagePath, basePath: bucketPrefix, baseUrl});
+				imagePath = this.renderFilePath({ imageFilePath: imagePath, basePath: bucketPrefix, baseUrl });
 				editor.edit(edit => {
 					const current = editor.selection;
 					if (current.isEmpty) {
@@ -105,14 +131,14 @@ class Paster {
 		});
 	}
 
-	public static renderFilePath(opts: {imageFilePath: string, basePath: string, baseUrl: string}): string {
+	public static renderFilePath(opts: { imageFilePath: string, basePath: string, baseUrl: string }): string {
 		// eslint-disable-next-line prefer-const
-		let {imageFilePath, basePath, baseUrl} = opts;
+		let { imageFilePath, basePath, baseUrl } = opts;
 		imageFilePath = path.normalize(imageFilePath);
 		imageFilePath = `${baseUrl}/${basePath}/${path.basename(imageFilePath)}`;
 		imageFilePath = `![](${imageFilePath})`;
 		return imageFilePath;
-}
+	}
 
 
 	private static saveClipboardImageToFileAndGetPath(imagePath: string, cb: (imagePath: string, imagePathFromScript: string) => Promise<void>) {

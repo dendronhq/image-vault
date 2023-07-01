@@ -1,11 +1,11 @@
 
 export const CONSTANTS = {
-  EXTENSION_NAMESPACE: "imageVault"
+  EXTENSION_NAMESPACE: "imageVault",
+  AWS_SECRET_KEY: "secretAccessKey"
 };
 
 export enum Config {
   "accessKeyId" = "imageVault.accessKeyId",
-  "secretAccessKey" = "imageVault.secretAccessKey",
   "region" = "imageVault.region",
   "bucketEndpoint" = "imageVault.bucketEndpoint",
   "bucketName" = "imageVault.bucketName",

@@ -2,13 +2,15 @@ import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { getConfig } from "./vscode";
 
 export class AWSUtils {
-  static getS3Client() {
-    const {region, accessKeyId, secretAccessKey} = getConfig();
+
+  static getS3Client(secretAccessKey: string) {
+    const {region, accessKeyId} = getConfig();
+    
     return new S3Client({
       region: region,
       credentials: {
         accessKeyId: accessKeyId,
-        secretAccessKey: secretAccessKey,
+        secretAccessKey
       },
     });
   }
