@@ -1,19 +1,33 @@
 import vscode from 'vscode';
 
+enum LogLevel {
+  "INFO" = "INFO",
+  "DEBUG" = "DEBUG",
+  "ERROR" = "ERROR",
+}
+
 export class Logger {
   static channel: vscode.OutputChannel;
 
-  static log(message: any) {
+  static _log(opts: {message: any, level: LogLevel}) {
+    const {message, level} = opts;
     if (this.channel) {
       const currentTime = new Date();
-      this.channel.appendLine(`[${currentTime}] [INFO] ${message}`);
+      this.channel.appendLine(`[${currentTime}] [${level}] ${message}`);
     }
   }
 
+  static log(message: any) {
+    this._log({message, level: LogLevel.INFO});
+  }
+
+  static error(message: any) {
+    this._log({message, level: LogLevel.ERROR});
+  }
+
   static debug(message: any) {
-    if (this.channel && process.env.NODE_ENV === 'development') {
-      const currentTime = new Date();
-      this.channel.appendLine(`[${currentTime}] [DEBUG] ${message}`);
+    if (process.env.NODE_ENV === 'development') {
+      this._log({message, level: LogLevel.DEBUG});
     }
   }
 

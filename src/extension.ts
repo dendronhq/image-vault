@@ -110,8 +110,18 @@ class Paster {
 				}
 
 				const key = `${bucketPrefix}/${path.basename(imagePath)}`;
-				const resp = await AWSUtils.putObject({ client, bucketName, data, mime: mimeType, key: key });
-				Logger.log(`uploaded to s3 status: ${resp.$metadata.httpStatusCode}`);
+				try {
+					const resp = await AWSUtils.putObject({ client, bucketName, data, mime: mimeType, key: key });
+					Logger.log(`uploaded to s3 status: ${resp.$metadata.httpStatusCode}`);
+				} catch(err) {
+					if (AWSUtils.isAWSError(err)) {
+						Logger.error(AWSUtils.stringifyAWSError(err));
+						Logger.showErrorMessage(`Error uploading to s3: ${err.message}`);
+						reject(err);
+					} else {
+						Logger.showErrorMessage(`Error uploading to s3: ${err}`);
+					}
+				}
 
 				const baseUrl = `https://${bucketName}.s3.${region}.amazonaws.com`;
 
