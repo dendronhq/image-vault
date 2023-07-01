@@ -5,6 +5,9 @@
 	"version": "0.0.2",
 	"publisher": "dendronhq",
 	"repository": "https://github.com/dendronhq/image-vault",
+	"sponsor": {
+    "url": "https://accounts.dendron.so/account/subscribe"
+  },
 	"engines": {
 		"vscode": "^1.74.0"
 	},
@@ -15,6 +18,13 @@
 		"onLanguage:markdown"
 	],
 	"main": "./out/src/extension.js",
+	"keywords": [
+    "markdown",
+		"images",
+    "markdown images",
+		"aws",
+		"s3"
+  ],
 	"icon": "media/logo-150.jpg",
 	"contributes": {
 		"commands": [
@@ -79,5 +89,12 @@
 		"lodash": "^4.17.21",
 		"mime": "^3.0.0",
 		"moment": "^2.29.4"
-	}
+	},
+	"capabilities": {
+    "untrustedWorkspaces": {
+      "supported": true,
+      "description": "All features are enabled",
+      "restrictedConfigurations": []
+    }
+  }
 }
