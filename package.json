@@ -2,7 +2,7 @@
 	"name": "imagevault",
 	"displayName": "Image Vault",
 	"description": "Store and serve images without bloating your git repo",
-	"version": "0.0.1",
+	"version": "0.0.2",
 	"publisher": "dendronhq",
 	"repository": "https://github.com/dendronhq/image-vault",
 	"engines": {
