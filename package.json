@@ -2,12 +2,12 @@
 	"name": "imagevault",
 	"displayName": "Image Vault",
 	"description": "Store and serve images without bloating your git repo",
-	"version": "0.0.2",
+	"version": "0.0.3",
 	"publisher": "dendronhq",
 	"repository": "https://github.com/dendronhq/image-vault",
 	"sponsor": {
-    "url": "https://accounts.dendron.so/account/subscribe"
-  },
+		"url": "https://accounts.dendron.so/account/subscribe"
+	},
 	"engines": {
 		"vscode": "^1.74.0"
 	},
@@ -19,12 +19,12 @@
 	],
 	"main": "./out/src/extension.js",
 	"keywords": [
-    "markdown",
+		"markdown",
 		"images",
-    "markdown images",
+		"markdown images",
 		"aws",
 		"s3"
-  ],
+	],
 	"icon": "media/logo-150.jpg",
 	"contributes": {
 		"commands": [
@@ -91,10 +91,10 @@
 		"moment": "^2.29.4"
 	},
 	"capabilities": {
-    "untrustedWorkspaces": {
-      "supported": true,
-      "description": "All features are enabled",
-      "restrictedConfigurations": []
-    }
-  }
+		"untrustedWorkspaces": {
+			"supported": true,
+			"description": "All features are enabled",
+			"restrictedConfigurations": []
+		}
+	}
 }
