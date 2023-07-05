@@ -6,9 +6,11 @@ export const createImageHoverProvider = vscode.languages.registerHoverProvider(
   {
     provideHover(document: vscode.TextDocument, position: vscode.Position) {
       const wordRange = document.getWordRangeAtPosition(position, /(?:https?|ftp):\/\/[\w/\-?=%.]+\.[\w/\-?=%.]+/);
+      if (!wordRange) {
+        return null;
+      }
+
       const word = document.getText(wordRange);
-
-
       Logger.debug(`Hovering over ${word}`);
       if (isValidImageUrl(word)) {
         const imageSize= '300px'; // Set the maximum width for the image
